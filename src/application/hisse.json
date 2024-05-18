@@ -1,0 +1,22 @@
+[
+    {
+        "name": "Hisse A",
+        "alis": 10.5,
+        "satis": 12.0
+    },
+    {
+        "name": "Hisse B",
+        "alis": 20.0,
+        "satis": 22.5
+    },
+    {
+        "name": "Hisse C",
+        "alis": 15.75,
+        "satis": 18.0
+    },
+    {
+        "name": "Hisse D",
+        "alis": 5,
+        "satis": 10
+    }
+]
