@@ -9,14 +9,13 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 
 import java.io.IOException;
 
-public class UserController {
+public class YetkiliController {
 
     @FXML
     private StackPane contentPane;
@@ -28,25 +27,13 @@ public class UserController {
     private Label userInfoLabel;
 
     private String kullaniciAdi = GirisController.kullaniciAdi;
-    private float bakiye = 0;
 
 
     @FXML
     private void initialize() {
-        //users.json dosyasından bakiye bilgisini al
-            try (Connection connection = Veritabani.getConnection();
-                 PreparedStatement statement = connection.prepareStatement("SELECT bakiye FROM users WHERE username = ?")) {
-                statement.setString(1, kullaniciAdi);
-                ResultSet resultSet = statement.executeQuery();
-                if (resultSet.next()) {
-                    bakiye = resultSet.getFloat("bakiye");
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         // Kullanıcı bilgilerini ayarla
         if (kullaniciAdi != null) {
-            userInfoLabel.setText("Kullanıcı Adı: " + kullaniciAdi +"\nBakiye: " + bakiye + " TL");
+            userInfoLabel.setText("Kullanıcı Adı: " + kullaniciAdi);
         } else {
             userInfoLabel.setText("Kullanıcı Adı: Bilinmiyor");
         }
@@ -57,17 +44,17 @@ public class UserController {
     
     @FXML
     private void handleMenu1() {
-        loadContent("menu1.fxml");
+        loadContent("yetkilimenu1.fxml");
     }
 
     @FXML
     private void handleMenu2() {
-        loadContent("menu2.fxml");
+        loadContent("yetkilimenu2.fxml");
     }
 
     @FXML
     private void handleMenu3() {
-        loadContent("menu3.fxml");
+        loadContent("yetkilimenu3.fxml");
     }
 
     @FXML

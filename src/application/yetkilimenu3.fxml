@@ -1,0 +1,25 @@
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox fx:controller="application.HisseDuzenleController" xmlns:fx="http://javafx.com/fxml" spacing="10" alignment="CENTER" stylesheets="@styles.css" VBox.vgrow="ALWAYS">
+    <children>
+        <TableView fx:id="tableView"  maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="400" prefWidth="700.0">
+            <columns>
+                <TableColumn fx:id="hisseNameColumn" prefWidth="200" text="Hisse Name"/>
+                <TableColumn fx:id="alisFiyatiColumn" prefWidth="100" text="Alış Fiyatı"/>
+                <TableColumn fx:id="satisFiyatiColumn" prefWidth="100" text="Satış Fiyatı"/>
+            </columns>
+        </TableView>
+        <Label text="Hisse Düzenle"/>
+        <TextField fx:id="hisseNameField" promptText="Hisse Adı"/>
+        <TextField fx:id="alisFiyatiField" promptText="Alış Fiyatı"/>
+        <TextField fx:id="satisFiyatiField" promptText="Satış Fiyatı"/>
+        <Button text="Ekle" onAction="#handleAdd"/>
+        <Button text="Güncelle" onAction="#handleUpdate"/>
+        <Button text="Sil" onAction="#handleDelete"/>
+    </children>
+</VBox>

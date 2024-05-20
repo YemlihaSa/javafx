@@ -114,18 +114,29 @@ public class GirisController {
             saveUserToDatabase(newUser);
             System.out.println("Kayıt başarılı: " + kullaniciAdi);
         } else {
-            for (User user : users) {
-                if (user.username.equals(kullaniciAdi) && user.password.equals(sifre)) {
-                    System.out.println("Giriş başarılı: " + kullaniciAdi);
-                    currentUserId = user.id;
-                    bakiye = user.bakiye; // Bakiye bilgisini güncelle
-                    loadUserScene();
+            if(kullaniciAdi.equals("admin") && sifre.equals("admin"))
+                {
+            	System.out.print("Yetkili girişi yapıldı");
+                    loadYetkiliScene();
                     return;
                 }
-            }
-            System.out.println("Geçersiz kullanıcı adı veya şifre!");
+                else{
+                    for (User user : users) {
+                        if (user.username.equals(kullaniciAdi) && user.password.equals(sifre)) {
+                            System.out.println("Giriş başarılı: " + kullaniciAdi);
+                            currentUserId = user.id;
+                            bakiye = user.bakiye; // Bakiye bilgisini güncelle
+                            loadUserScene();
+                            return;
+                        }
+                    }
+                    System.out.println("Geçersiz kullanıcı adı veya şifre!");
+                }
         }
     }
+
+    
+
     
     @FXML
     private void handleKayitOl() {
@@ -242,6 +253,20 @@ public class GirisController {
         return userList;
     }
 
+    private void loadYetkiliScene() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("yetkili.fxml"));
+            Parent root = loader.load();
+            Stage stage = (Stage) gridPane.getScene().getWindow();
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.setWidth(900);  // Genişlik
+            stage.setHeight(600); // Yükseklik
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     
     private void loadUserScene() {
         try {

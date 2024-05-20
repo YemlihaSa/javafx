@@ -1,0 +1,20 @@
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox fx:controller="application.KullaniciHisseDuzenleController" xmlns:fx="http://javafx.com/fxml" spacing="10" alignment="CENTER" stylesheets="@styles.css" VBox.vgrow="ALWAYS">
+    <children>
+        <TableView fx:id="tableView"  maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="400" prefWidth="700.0">
+            <columns>
+                <TableColumn fx:id="userIdColumn" prefWidth="100" text="User ID"/>
+                <TableColumn fx:id="usernameColumn" prefWidth="200" text="Username"/>
+                <TableColumn fx:id="hisseNameColumn" prefWidth="200" text="Hisse Name"/>
+                <TableColumn fx:id="miktarColumn" prefWidth="200" text="Miktar"/>
+            </columns>
+        </TableView>
+        <TextField fx:id="miktarField" promptText="Yeni Miktar"/>
+        <Button text="Güncelle" onAction="#updateHisse"/>
+    </children>
+</VBox>

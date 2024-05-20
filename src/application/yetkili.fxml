@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane stylesheets="@styles.css" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/21" fx:controller="application.YetkiliController">
+    <left>
+        <VBox fx:id="menuVBox" alignment="TOP_CENTER" spacing="10" style="-fx-background-color: #2c3e50;">
+            <Label style="-fx-text-fill: white; -fx-font-size: 18px; -fx-padding: 10px;" text="Hisse Uygulaması" />
+            <Label fx:id="userInfoLabel" style="-fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10px;" text="Kullanıcı Bilgileri" />
+            <Pane fx:id="spacer" VBox.vgrow="ALWAYS" />
+            <Button onAction="#handleMenu1" styleClass="menu-button" text="Kullanıcı Düzenle" />
+            <Button onAction="#handleMenu2" styleClass="menu-button" text="Kullanıcı Hisse Düzenle" />
+            <Button onAction="#handleMenu3" styleClass="menu-button" text="Hisse Düzenle" />
+            <Button onAction="#handleLogout" styleClass="menu-button" text="Çıkış Yap">
+                <VBox.margin>
+                    <Insets bottom="20" />
+                </VBox.margin>
+            </Button>
+        </VBox>
+    </left>
+    <center>
+        <StackPane fx:id="contentPane" style="-fx-background-color: #ecf0f1;">
+            <VBox alignment="TOP_CENTER" spacing="10">
+                <Label style="-fx-text-fill: #2c3e50; -fx-font-size: 16px; -fx-padding: 10px;" text="Kullanıcı Bilgileri" />
+                <TableView fx:id="userStocksTable" style="-fx-background-color: white;">
+                    <columns>
+                        <TableColumn fx:id="stockNameColumn" prefWidth="150" text="Hisse Adı">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="stockName" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="stockQuantityColumn" prefWidth="100" text="Adet">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="quantity" />
+                            </cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="stockPriceColumn" prefWidth="100" text="Fiyat">
+                            <cellValueFactory>
+                                <PropertyValueFactory property="price" />
+                            </cellValueFactory>
+                        </TableColumn>
+                    </columns>
+                </TableView>
+            </VBox>
+        </StackPane>
+    </center>
+</BorderPane>
