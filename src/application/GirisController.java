@@ -11,10 +11,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,17 +46,52 @@ public class GirisController {
     private List<User> users = new ArrayList<>();
     public static String kullaniciAdi;
     public static float bakiye; // Static bakiye değişkeni
-    
+    public static int currentUserId;
+
     @FXML
     public void initialize() {
-        try {
-            String content = new String(Files.readAllBytes(Paths.get("src/application/users.json")));
-            users = parseUsers(content);
-        } catch (IOException e) {
+        loadUsersFromDatabase();
+    }
+
+    private void loadUsersFromDatabase() {
+        try (Connection connection = Veritabani.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery("SELECT * FROM users")) {
+
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String username = resultSet.getString("username");
+                String password = resultSet.getString("password");
+                float bakiye = resultSet.getFloat("bakiye");
+
+                List<Hisse> hisseler = loadHisselerForUser(id);
+
+                User user = new User(id, username, password, bakiye, hisseler);
+                users.add(user);
+            }
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
-    
+
+    private List<Hisse> loadHisselerForUser(int userId) {
+        List<Hisse> hisseler = new ArrayList<>();
+        try (Connection connection = Veritabani.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery("SELECT * FROM hisseleruser WHERE user_id = " + userId)) {
+
+            while (resultSet.next()) {
+                String name = resultSet.getString("name");
+                int miktar = resultSet.getInt("miktar");
+                Hisse hisse = new Hisse(name, miktar);
+                hisseler.add(hisse);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return hisseler;
+    }
+
     @FXML
     private void handleGirisYap() {
         kullaniciAdi = kullaniciAdiField.getText();
@@ -74,12 +111,13 @@ public class GirisController {
             }
             User newUser = new User(users.size() + 1, kullaniciAdi, sifre, 0, new ArrayList<>());
             users.add(newUser);
-            saveUsers();
+            saveUserToDatabase(newUser);
             System.out.println("Kayıt başarılı: " + kullaniciAdi);
         } else {
             for (User user : users) {
                 if (user.username.equals(kullaniciAdi) && user.password.equals(sifre)) {
                     System.out.println("Giriş başarılı: " + kullaniciAdi);
+                    currentUserId = user.id;
                     bakiye = user.bakiye; // Bakiye bilgisini güncelle
                     loadUserScene();
                     return;
@@ -106,10 +144,35 @@ public class GirisController {
         }
     }
     
-    private void saveUsers() {
-        try (FileWriter file = new FileWriter("src/application/users.json")) {
-            file.write(usersToJson(users));
-        } catch (IOException e) {
+    private void saveUserToDatabase(User user) {
+        try (Connection connection = Veritabani.getConnection();
+             PreparedStatement userStatement = connection.prepareStatement(
+                 "INSERT INTO users (username, password, bakiye) VALUES (?, ?, ?)", 
+                 Statement.RETURN_GENERATED_KEYS)) {
+            
+            // Kullanıcıyı veritabanına ekle
+            userStatement.setString(1, user.username);
+            userStatement.setString(2, user.password);
+            userStatement.setFloat(3, user.bakiye);
+            userStatement.executeUpdate();
+    
+            // Kullanıcının ID'sini al
+            ResultSet generatedKeys = userStatement.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                int userId = generatedKeys.getInt(1);
+    
+                // Kullanıcının hisselerini veritabanına ekle
+                try (PreparedStatement hisseStatement = connection.prepareStatement(
+                    "INSERT INTO hisseler (user_id, name, miktar) VALUES (?, ?, ?)")) {
+                    for (Hisse hisse : user.hisseler) {
+                        hisseStatement.setInt(1, userId);
+                        hisseStatement.setString(2, hisse.name);
+                        hisseStatement.setInt(3, hisse.miktar);
+                        hisseStatement.executeUpdate();
+                    }
+                }
+            }
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
@@ -178,33 +241,7 @@ public class GirisController {
         }
         return userList;
     }
-    
-    private String usersToJson(List<User> users) {
-        StringBuilder json = new StringBuilder("[");
-        for (User user : users) {
-            json.append("{")
-                .append("\"id\":").append(user.id).append(",")
-                .append("\"username\":\"").append(user.username).append("\",")
-                .append("\"password\":\"").append(user.password).append("\",")
-                .append("\"bakiye\":").append(user.bakiye).append(",")
-                .append("\"hisseler\":[");
-            for (Hisse hisse : user.hisseler) {
-                json.append("{")
-                    .append("\"name\":\"").append(hisse.getName()).append("\",")
-                    .append("\"miktar\":").append(hisse.getMiktar())
-                    .append("},");
-            }
-            if (!user.hisseler.isEmpty()) {
-                json.setLength(json.length() - 1); // Remove the last comma
-            }
-            json.append("]},");
-        }
-        if (!users.isEmpty()) {
-            json.setLength(json.length() - 1); // Remove the last comma
-        }
-        json.append("]");
-        return json.toString();
-    }
+
     
     private void loadUserScene() {
         try {

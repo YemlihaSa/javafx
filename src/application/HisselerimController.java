@@ -5,9 +5,10 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,66 +27,63 @@ public class HisselerimController {
         miktarColumn.setCellValueFactory(new PropertyValueFactory<>("miktar"));
 
         try {
-            String content = new String(Files.readAllBytes(Paths.get("src/application/users.json")));
-            List<Hisse> hisseList = parseHisselerFromUsers(content);
-            tableView.getItems().addAll(hisseList);
-        } catch (IOException e) {
+            List<Hisse> hisseList = loadHisselerFromDatabase();
+            setupTableView(hisseList);
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    private List<Hisse> parseHisselerFromUsers(String content) {
+    private List<Hisse> loadHisselerFromDatabase() throws SQLException {
         List<Hisse> hisseList = new ArrayList<>();
-        content = content.trim();
-        if (content.startsWith("[") && content.endsWith("]")) {
-            content = content.substring(1, content.length() - 1);
-            String[] userJsonArray = content.split("},\\s*\\{");
-            for (String userJson : userJsonArray) {
-                userJson = userJson.replace("{", "").replace("}", "");
-                String[] fields = userJson.split(",");
-                for (String field : fields) {
-                    String[] keyValue = field.split(":");
-                    if (keyValue.length < 2) continue; // Eğer keyValue çift değilse atla
-                    String key = keyValue[0].trim().replace("\"", "");
-                    String value = keyValue[1].trim().replace("\"", "");
-                    if (key.equals("hisseler")) {
-                        String hisselerJson = value.replace("[", "").replace("]", "");
-                        String[] hisseArray = hisselerJson.split("},\\s*\\{");
-                        for (String hisseJson : hisseArray) {
-                            hisseJson = hisseJson.replace("{", "").replace("}", "");
-                            String[] hisseFields = hisseJson.split(",");
-                            String hisseName = "";
-                            int miktar = 0;
-                            for (String hisseField : hisseFields) {
-                                String[] hisseKeyValue = hisseField.split(":");
-                                if (hisseKeyValue.length < 2) continue; // Eğer hisseKeyValue çift değilse atla
-                                String hisseKey = hisseKeyValue[0].trim().replace("\"", "");
-                                String hisseValue = hisseKeyValue[1].trim().replace("\"", "");
-                                switch (hisseKey) {
-                                    case "name":
-                                        hisseName = hisseValue;
-                                        break;
-                                    case "miktar":
-                                        miktar = Integer.parseInt(hisseValue);
-                                        break;
-                                }
-                            }
-                            hisseList.add(new Hisse(hisseName, miktar));
-                        }
-                    }
-                }
+        try (Connection connection = Veritabani.getConnection();
+            PreparedStatement statement = connection.prepareStatement("SELECT * FROM hisseleruser WHERE user_id = ?")) {
+            statement.setInt(1, GirisController.currentUserId); // Mevcut kullanıcı ID'sini kullanın
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                int userId = resultSet.getInt("user_id");
+                String name = resultSet.getString("name");
+                int miktar = resultSet.getInt("miktar");
+
+                Hisse hisse = new Hisse(id, userId, name, miktar);
+                hisseList.add(hisse);
             }
         }
         return hisseList;
     }
 
+    private void setupTableView(List<Hisse> hisseList) {
+        tableView.getItems().setAll(hisseList);
+    }
+
     public static class Hisse {
+        private int id;
+        private int userId;
         private String name;
         private int miktar;
 
-        public Hisse(String name, int miktar) {
+        public Hisse(int id, int userId, String name, int miktar) {
+            this.id = id;
+            this.userId = userId;
             this.name = name;
             this.miktar = miktar;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
+
+        public int getUserId() {
+            return userId;
+        }
+
+        public void setUserId(int userId) {
+            this.userId = userId;
         }
 
         public String getName() {

@@ -4,9 +4,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,13 +25,31 @@ public class AnasayfaController {
     @FXML
     private void initialize() {
         try {
-            String content = new String(Files.readAllBytes(Paths.get("src/application/hisse.json")));
-            List<Hisse> hisseList = parseHisse(content);
+            List<Hisse> hisseList = loadHisselerFromDatabase();
             setupTableView(hisseList);
-        } catch (IOException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
+    
+    private List<Hisse> loadHisselerFromDatabase() throws SQLException {
+        List<Hisse> hisseList = new ArrayList<>();
+        try (Connection connection = Veritabani.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery("SELECT * FROM Hisseler")) {
+    
+            while (resultSet.next()) {
+                String name = resultSet.getString("name");
+                double alis = resultSet.getDouble("alis");
+                double satis = resultSet.getDouble("satis");
+    
+                Hisse hisse = new Hisse(name, alis, satis);
+                hisseList.add(hisse);
+            }
+        }
+        return hisseList;
+    }
+
 
     private void setupTableView(List<Hisse> hisseList) {
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
@@ -75,37 +94,4 @@ public class AnasayfaController {
         }
     }
 
-    private List<Hisse> parseHisse(String content) {
-        List<Hisse> hisseList = new ArrayList<>();
-        content = content.trim();
-        if (content.startsWith("[") && content.endsWith("]")) {
-            content = content.substring(1, content.length() - 1);
-            String[] hisseJsonArray = content.split("},\\s*\\{");
-            for (String hisseJson : hisseJsonArray) {
-                hisseJson = hisseJson.replace("{", "").replace("}", "");
-                String[] fields = hisseJson.split(",");
-                String name = "";
-                double alis = 0;
-                double satis = 0;
-                for (String field : fields) {
-                    String[] keyValue = field.split(":");
-                    String key = keyValue[0].trim().replace("\"", "");
-                    String value = keyValue[1].trim().replace("\"", "");
-                    switch (key) {
-                        case "name":
-                            name = value;
-                            break;
-                        case "alis":
-                            alis = Double.parseDouble(value);
-                            break;
-                        case "satis":
-                            satis = Double.parseDouble(value);
-                            break;
-                    }
-                }
-                hisseList.add(new Hisse(name, alis, satis));
-            }
-        }
-        return hisseList;
-    }
 }
